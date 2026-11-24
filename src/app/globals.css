@@ -1,0 +1,218 @@
+@import "tailwindcss";
+
+/* ───────────────────────────────────────────────
+   XOXO Travels — design tokens
+   Palette: warm off-white / logo green /
+   logo near-black / sunset coral / warm yellow
+   ─────────────────────────────────────────────── */
+@theme {
+  /* Surfaces */
+  --color-paper: #ffffff;
+  --color-cream: #fbf8f3;
+  --color-cream-deep: #f3eee5;
+  --color-ink: #070d1a;
+  --color-ink-soft: #44505f;
+  --color-ink-mute: #626b7c; /* 4.6:1 on cream-deep (AA) */
+  --color-line: #e6e1d8;
+
+  /* Brand. The green and near-black tones match the XOXO logo.
+     Sky utilities remain as the shared brand-token names for consistency. */
+  --color-sky-50: #e5f8ef;
+  --color-sky-100: #bdf1db;
+  --color-sky-500: #16d69a;
+  --color-sky-600: #087f63; /* fills carrying white text: 4.7:1 */
+  --color-sky-700: #05654f; /* hover + text on sky-50 */
+
+  /* Coral — offers, urgency, warmth */
+  --color-coral-50: #fff0ea;
+  --color-coral-500: #ff7043;
+  --color-coral-600: #d93400; /* fills carrying white text: 4.7:1 */
+  --color-coral-700: #b82c00; /* coral text on white / coral-50 */
+
+  /* Green — trust, verified, success */
+  --color-leaf-50: #e7f8f4;
+  --color-leaf-500: #19b99a;
+  --color-leaf-600: #117b67; /* green text + fills: 4.7:1 */
+  --color-leaf-700: #0e6958;
+
+  /* Yellow — small highlights only */
+  --color-sun-50: #fff8e1;
+  --color-sun-400: #ffc53d;
+  --color-sun-500: #f5b000;
+
+  /* Type */
+  /* ₹-only face first: unicode-range limits it to that one glyph (lib/fonts.ts) */
+  --font-display: var(--font-bricolage-rupee), var(--font-bricolage), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-dm-sans-rupee), var(--font-dm-sans), ui-sans-serif, system-ui, sans-serif;
+
+  /* Radius — rounded cards are part of the identity */
+  --radius-sm: 0.5rem;
+  --radius-md: 0.875rem;
+  --radius-lg: 1.25rem;
+  --radius-xl: 1.75rem;
+  --radius-pill: 999px;
+
+  /* Elevation — soft, never heavy */
+  --shadow-card: 0 1px 2px rgb(7 13 26 / 0.04), 0 8px 24px -12px rgb(7 13 26 / 0.12);
+  --shadow-card-hover: 0 2px 4px rgb(7 13 26 / 0.05), 0 18px 40px -16px rgb(7 13 26 / 0.2);
+  --shadow-float: 0 12px 40px -8px rgb(22 214 154 / 0.25);
+
+  /* Motion — one easing, two durations */
+  --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
+  --duration-fast: 160ms;
+  --duration-base: 280ms;
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background: var(--color-cream);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    font-feature-settings: "ss01", "cv11";
+    text-rendering: optimizeLegibility;
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1.08;
+    text-wrap: balance;
+  }
+
+  p { text-wrap: pretty; }
+
+  ::selection {
+    background: var(--color-sky-100);
+    color: var(--color-ink);
+  }
+
+  /* Outline follows each element's own radius; never reshape on focus. */
+  :focus-visible {
+    outline: 3px solid var(--color-sky-500);
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    html { scroll-behavior: auto; }
+    *, *::before, *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+    }
+  }
+}
+
+@utility tabular {
+  font-variant-numeric: tabular-nums;
+}
+
+/* Glass — used selectively (nav, floating panels), never as a theme */
+@utility glass {
+  background: rgb(255 255 255 / 0.72);
+  backdrop-filter: saturate(160%) blur(14px);
+  -webkit-backdrop-filter: saturate(160%) blur(14px);
+  border: 1px solid rgb(255 255 255 / 0.6);
+}
+
+/* Page container */
+@utility container-x {
+  width: 100%;
+  margin-inline: auto;
+  padding-inline: 1rem;
+  max-width: 80rem;
+  @media (min-width: 640px) { padding-inline: 1.5rem; }
+  @media (min-width: 1024px) { padding-inline: 2rem; }
+}
+
+/* Skeleton shimmer */
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+@utility skeleton {
+  background: linear-gradient(90deg, var(--color-cream-deep) 0%, #faf7f1 50%, var(--color-cream-deep) 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.6s linear infinite;
+  border-radius: var(--radius-md);
+}
+
+/* Scroll-reveal. Content is visible by default; it is only pre-hidden once
+   the inline script in the root layout has marked <html class="js">, and
+   never under reduced motion. A failed script can't blank the page. */
+@utility reveal {
+  transition: opacity var(--duration-base) var(--ease-out-soft),
+              transform var(--duration-base) var(--ease-out-soft);
+  @media (prefers-reduced-motion: no-preference) {
+    :where(.js) &:not(.is-visible) { opacity: 0; transform: translateY(14px); }
+  }
+}
+
+/* Page transition — a short fade only, so it never fights section motion */
+@keyframes page-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@utility animate-page-in {
+  /* Opacity only. Any transform on this wrapper (even mid-animation or an identity
+     one left by fill-mode) makes it the containing block for position:fixed,
+     which unpins the mobile bottom bars from the screen. */
+  animation: page-in var(--duration-base) var(--ease-out-soft) backwards;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
+}
+
+/* ───────────────────────────────────────────────
+   Boarding pass — the signature search panel.
+   Stub (tabs) + perforation + body (form).
+   ─────────────────────────────────────────────── */
+@utility boarding-pass {
+  --bp-radius: var(--radius-xl);
+  --bp-notch: 18px;
+  position: relative;
+  /* No background here: each band paints its own, so the notches are real
+     holes. drop-shadow follows the cut-out shape (box-shadow wouldn't). */
+  filter: drop-shadow(0 2px 3px rgb(7 13 26 / 0.06)) drop-shadow(0 18px 28px rgb(7 13 26 / 0.16));
+}
+@utility boarding-pass__stub {
+  padding: 0.5rem 0.5rem 0;
+  border-radius: var(--bp-radius) var(--bp-radius) 0 0;
+  background: var(--color-cream-deep);
+}
+@utility boarding-pass__tear {
+  height: var(--bp-notch);
+  background-color: var(--color-paper);
+  background-image: repeating-linear-gradient(90deg, var(--color-line) 0 8px, transparent 8px 16px);
+  background-size: calc(100% - 2 * var(--bp-notch)) 1px;
+  background-position: center;
+  background-repeat: no-repeat;
+  mask:
+    radial-gradient(circle at 0 50%, transparent calc(var(--bp-notch) / 2), #000 calc(var(--bp-notch) / 2 + 0.5px)) left / 51% 100% no-repeat,
+    radial-gradient(circle at 100% 50%, transparent calc(var(--bp-notch) / 2), #000 calc(var(--bp-notch) / 2 + 0.5px)) right / 51% 100% no-repeat;
+}
+@utility boarding-pass__body {
+  background: var(--color-paper);
+  padding: 1.25rem 1rem;
+  border-radius: 0 0 var(--bp-radius) var(--bp-radius);
+  @media (min-width: 640px) { padding: 1.5rem; }
+}
+
+/* ───────────────────────────────────────────────
+   Hero entrance — the one orchestrated moment.
+   Image settles, then headline, then the pass.
+   ─────────────────────────────────────────────── */
+/* Scale only: an opacity fade would delay Largest Contentful Paint. */
+@keyframes hero-img { from { transform: scale(1.05); } to { transform: none; } }
+@keyframes hero-rise { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+@utility hero-img { animation: hero-img 1200ms var(--ease-out-soft) both; }
+@utility hero-rise {
+  animation: hero-rise 600ms var(--ease-out-soft) both;
+  animation-delay: var(--delay, 0ms);
+}
+@media (prefers-reduced-motion: reduce) {
+  .hero-img, .hero-rise { animation: none; }
+}

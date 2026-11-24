@@ -1,0 +1,442 @@
+// XOXO Travels — data model
+// Prisma 7: engine-free client + pg driver adapter. See prisma.config.ts.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ───────────────────────── Catalogue ─────────────────────────
+
+enum Region {
+  domestic
+  international
+}
+
+model Destination {
+  id           String   @id @default(cuid())
+  slug         String   @unique
+  name         String
+  area         String
+  region       Region
+  tagline      String
+  imageSrc     String
+  imageAlt     String
+  bestMonths   String
+  tags         String[]
+  featured     Boolean  @default(false)
+  sortOrder    Int      @default(0)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  packages     Package[]
+  groupTrips   GroupTrip[]
+  partnerTrips PartnerTrip[]
+
+  @@index([region, featured])
+}
+
+model Package {
+  id              String    @id @default(cuid())
+  slug            String    @unique
+  title           String
+  destination     Destination @relation(fields: [destinationId], references: [id])
+  destinationId   String
+  nights          Int
+  /// Per person, INR (whole rupees)
+  price           Int
+  listPrice       Int?
+  imageSrc        String
+  imageAlt        String
+  highlights      String[]
+  inclusions      String[]   // flights | hotel | meals | transfers | sightseeing | visa
+  themes          String[]   // honeymoon | family | adventure | beach | luxury | budget | weekend | culture
+  bestseller      Boolean    @default(false)
+  featured        Boolean    @default(false)
+  active          Boolean    @default(true)
+  /// Day-by-day itinerary, inclusions/exclusions, policies — rendered on the package page
+  itinerary       Json?
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+
+  reviews         Review[]
+  bookings        Booking[]
+
+  @@index([destinationId, active])
+  @@index([featured, active])
+}
+
+enum TripStyle {
+  trek
+  backpacking
+  roadtrip
+  women_only
+}
+
+model GroupTrip {
+  id            String    @id @default(cuid())
+  slug          String    @unique
+  title         String
+  destination   Destination @relation(fields: [destinationId], references: [id])
+  destinationId String
+  style         TripStyle
+  startDate     DateTime  @db.Date
+  endDate       DateTime  @db.Date
+  price         Int
+  seatsTotal    Int
+  imageSrc      String
+  imageAlt      String
+  leader        String
+  featured      Boolean   @default(false)
+  active        Boolean   @default(true)
+  itinerary     Json?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+
+  bookings      Booking[]
+  waitlist      Waitlist[]
+
+  @@index([startDate, active])
+}
+
+/// People waiting for a seat on a sold-out group trip. One entry per email per trip.
+model Waitlist {
+  id          String    @id @default(cuid())
+  groupTrip   GroupTrip @relation(fields: [groupTripId], references: [id], onDelete: Cascade)
+  groupTripId String
+  email       String
+  name        String
+  travelers   Int       @default(1)
+  createdAt   DateTime  @default(now())
+
+  @@unique([groupTripId, email])
+}
+
+enum OfferKind {
+  percent
+  flat
+}
+
+model Offer {
+  id          String    @id @default(cuid())
+  code        String    @unique
+  title       String
+  blurb       String
+  kind        OfferKind
+  value       Int
+  minSpend    Int?
+  maxDiscount Int?
+  validFrom   DateTime  @default(now())
+  validTill   DateTime  @db.Date
+  appliesTo   String    @default("all") // all | domestic | international | group-trips | honeymoon
+  tone        String    @default("coral")
+  active      Boolean   @default(true)
+  usageLimit  Int?
+  usedCount   Int       @default(0)
+
+  bookings    Booking[]
+}
+
+// ───────────────────────── People ─────────────────────────
+
+enum Role {
+  user
+  admin
+}
+
+model User {
+  id          String    @id @default(cuid())
+  /// Clerk user id (user_xxx). Source of truth for auth.
+  clerkId     String    @unique
+  email       String    @unique
+  phone       String?
+  role        Role      @default(user)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  profile       Profile?
+  bookings      Booking[]
+  reviews       Review[]
+  partnerTrips  PartnerTrip[]
+  sentRequests  PartnerRequest[] @relation("sentRequests")
+  gotRequests   PartnerRequest[] @relation("gotRequests")
+  messages      Message[]
+  blocksMade    Block[]  @relation("blocker")
+  blocksGot     Block[]  @relation("blocked")
+  reportsMade   Report[] @relation("reporter")
+  reportsGot    Report[] @relation("reported")
+  verifications Verification[]
+  participants  Participant[]
+}
+
+enum Gender {
+  female
+  male
+  other
+  prefer_not_to_say
+}
+
+model Profile {
+  userId      String   @id
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  displayName String
+  avatarKey   String?
+  bio         String?  @db.VarChar(500)
+  city        String?
+  dateOfBirth DateTime? @db.Date
+  gender      Gender?
+  interests   String[]
+  languages   String[]
+  /// Shown to other travelers in partner search
+  discoverable Boolean @default(false)
+  verified    Boolean  @default(false)
+  verifiedAt  DateTime?
+  updatedAt   DateTime @updatedAt
+}
+
+enum VerificationStatus {
+  pending
+  approved
+  rejected
+}
+
+/// ID photo upload reviewed by an admin. File lives in a PRIVATE bucket;
+/// only the object key is stored. Delete the object after review.
+model Verification {
+  id          String   @id @default(cuid())
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId      String
+  documentKey String
+  documentType String  @default("government-id")
+  status      VerificationStatus @default(pending)
+  note        String?
+  reviewedBy  String?
+  reviewedAt  DateTime?
+  createdAt   DateTime @default(now())
+
+  @@index([status, createdAt])
+}
+
+// ───────────────────────── Commerce ─────────────────────────
+
+enum BookingStatus {
+  pending      // created, awaiting payment
+  confirmed    // payment captured
+  cancelled
+  refunded
+  completed    // trip date passed
+}
+
+model Booking {
+  id            String   @id @default(cuid())
+  reference     String   @unique // human-readable, e.g. XO-7F3K2Q
+  user          User     @relation(fields: [userId], references: [id])
+  userId        String
+  package       Package?   @relation(fields: [packageId], references: [id])
+  packageId     String?
+  groupTrip     GroupTrip? @relation(fields: [groupTripId], references: [id])
+  groupTripId   String?
+  travelers     Int
+  travelDate    DateTime? @db.Date
+  /// All amounts in paise (INR × 100) to match Razorpay
+  subtotal      Int
+  discount      Int      @default(0)
+  tax           Int      @default(0)
+  total         Int
+  offer         Offer?   @relation(fields: [offerId], references: [id])
+  offerId       String?
+  status        BookingStatus @default(pending)
+  travelerDetails Json?  // names, ages, contact
+  notes         String?
+  /// Set when the confirmation email is claimed for sending; guards against double emails
+  confirmationEmailAt DateTime?
+  /// Extra help the traveler asked for at checkout. Set ONLY when payment is confirmed
+  /// (copied from travelerDetails.services), so unpaid or failed bookings never show a request.
+  visaAssistance   Boolean @default(false)
+  esimRequired     Boolean @default(false)
+  flightAssistance Boolean @default(false)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  payments      Payment[]
+  review        Review?
+
+  @@index([userId, createdAt])
+  @@index([status])
+}
+
+enum PaymentStatus {
+  created
+  authorized
+  captured
+  failed
+  refunded
+}
+
+model Payment {
+  id                String   @id @default(cuid())
+  booking           Booking  @relation(fields: [bookingId], references: [id])
+  bookingId         String
+  razorpayOrderId   String   @unique
+  razorpayPaymentId String?  @unique
+  razorpaySignature String?
+  amount            Int      // paise
+  currency          String   @default("INR")
+  status            PaymentStatus @default(created)
+  method            String?
+  rawWebhook        Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  @@index([bookingId])
+}
+
+model Review {
+  id         String   @id @default(cuid())
+  user       User     @relation(fields: [userId], references: [id])
+  userId     String
+  package    Package  @relation(fields: [packageId], references: [id])
+  packageId  String
+  booking    Booking  @relation(fields: [bookingId], references: [id])
+  bookingId  String   @unique
+  rating     Int      // 1–5
+  text       String   @db.VarChar(1000)
+  approved   Boolean  @default(false)
+  featured   Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  @@index([packageId, approved])
+}
+
+// ───────────────────────── Find a travel partner ─────────────────────────
+
+/// A declared trip: "I'm going to Thailand 12–18 Dec". Location is the
+/// traveler's home point at declaration time, used for the 200 km match.
+model PartnerTrip {
+  id            String   @id @default(cuid())
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId        String
+  destination   Destination? @relation(fields: [destinationId], references: [id])
+  destinationId String?
+  destinationText String
+  startDate     DateTime @db.Date
+  endDate       DateTime @db.Date
+  lat           Float
+  lng           Float
+  /// City-level label shown to others (never raw coordinates)
+  cityLabel     String
+  note          String?  @db.VarChar(300)
+  active        Boolean  @default(true)
+  createdAt     DateTime @default(now())
+
+  @@index([destinationText, startDate])
+  @@index([lat, lng])
+}
+
+enum RequestStatus {
+  pending
+  accepted
+  declined
+  withdrawn
+}
+
+model PartnerRequest {
+  id         String   @id @default(cuid())
+  from       User     @relation("sentRequests", fields: [fromId], references: [id], onDelete: Cascade)
+  fromId     String
+  to         User     @relation("gotRequests", fields: [toId], references: [id], onDelete: Cascade)
+  toId       String
+  message    String?  @db.VarChar(300)
+  status     RequestStatus @default(pending)
+  createdAt  DateTime @default(now())
+  respondedAt DateTime?
+
+  conversation Conversation?
+
+  @@unique([fromId, toId])
+  @@index([toId, status])
+}
+
+model Conversation {
+  id         String   @id @default(cuid())
+  request    PartnerRequest @relation(fields: [requestId], references: [id])
+  requestId  String   @unique
+  createdAt  DateTime @default(now())
+  lastMessageAt DateTime?
+
+  participants Participant[]
+  messages     Message[]
+}
+
+model Participant {
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  user           User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  userId         String
+  lastReadAt     DateTime?
+
+  @@id([conversationId, userId])
+}
+
+enum MessageKind {
+  text
+  image
+  system
+}
+
+model Message {
+  id             String   @id @default(cuid())
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  conversationId String
+  sender         User     @relation(fields: [senderId], references: [id])
+  senderId       String
+  kind           MessageKind @default(text)
+  body           String?  @db.VarChar(2000)
+  imageKey       String?
+  createdAt      DateTime @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Block {
+  blocker   User @relation("blocker", fields: [blockerId], references: [id], onDelete: Cascade)
+  blockerId String
+  blocked   User @relation("blocked", fields: [blockedId], references: [id], onDelete: Cascade)
+  blockedId String
+  createdAt DateTime @default(now())
+
+  @@id([blockerId, blockedId])
+}
+
+model Report {
+  id         String   @id @default(cuid())
+  reporter   User     @relation("reporter", fields: [reporterId], references: [id])
+  reporterId String
+  reported   User     @relation("reported", fields: [reportedId], references: [id])
+  reportedId String
+  reason     String
+  details    String?  @db.VarChar(1000)
+  resolved   Boolean  @default(false)
+  resolvedBy String?
+  createdAt  DateTime @default(now())
+
+  @@index([resolved, createdAt])
+}
+
+// ───────────────────────── Community ─────────────────────────
+
+model CommunityPhoto {
+  id        String   @id @default(cuid())
+  imageKey  String
+  alt       String
+  place     String
+  handle    String
+  href      String?
+  approved  Boolean  @default(false)
+  sortOrder Int      @default(0)
+  createdAt DateTime @default(now())
+}
