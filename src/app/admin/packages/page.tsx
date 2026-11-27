@@ -5,6 +5,8 @@ import { adminOr404 } from "@/lib/auth/admin";
 import { AdminHeader, Panel, Table, td, th } from "@/components/admin/ui";
 import { Badge, Button } from "@/components/ui";
 import { formatINR } from "@/lib/format";
+import { RowActions } from "@/components/admin/row-actions";
+import { deletePackage, setPackageActive } from "./actions";
 
 export const metadata: Metadata = { title: "Packages" };
 
@@ -15,7 +17,7 @@ export default async function AdminPackages({ searchParams }: PageProps<"/admin/
   const rows = await db!.package.findMany({
     where: q ? { OR: [{ title: { contains: q, mode: "insensitive" } }, { slug: { contains: q, mode: "insensitive" } }, { destination: { name: { contains: q, mode: "insensitive" } } }] } : undefined,
     orderBy: [{ active: "desc" }, { updatedAt: "desc" }],
-    select: { id: true, slug: true, title: true, nights: true, price: true, active: true, featured: true, bestseller: true, itinerary: true, destination: { select: { name: true } }, _count: { select: { bookings: true } } },
+    select: { id: true, slug: true, title: true, nights: true, price: true, active: true, featured: true, bestseller: true, itinerary: true, destination: { select: { name: true } }, _count: { select: { bookings: true, reviews: true } } },
   });
 
   return (
@@ -29,7 +31,7 @@ export default async function AdminPackages({ searchParams }: PageProps<"/admin/
       </form>
       {rows.length === 0 ? <Panel className="p-6 text-center text-ink-soft">No packages found.</Panel> : (
         <Table>
-          <thead><tr><th className={th}>Package</th><th className={th}>Destination</th><th className={th}>Nights</th><th className={th}>Price</th><th className={th}>Bookings</th><th className={th}>Status</th></tr></thead>
+          <thead><tr><th className={th}>Package</th><th className={th}>Destination</th><th className={th}>Nights</th><th className={th}>Price</th><th className={th}>Bookings</th><th className={th}>Status</th><th className={`${th} text-right`}>Actions</th></tr></thead>
           <tbody>
             {rows.map((p) => (
               <tr key={p.id} className={p.active ? "" : "bg-cream/60"}>
@@ -48,6 +50,11 @@ export default async function AdminPackages({ searchParams }: PageProps<"/admin/
                     {p.bestseller && <Badge tone="yellow">Bestseller</Badge>}
                     {!p.itinerary && <Badge>Default itinerary</Badge>}
                   </div>
+                </td>
+                <td className={`${td} text-right`}>
+                  <RowActions id={p.id} name={p.title} editHref={`/admin/packages/${p.id}`} viewHref={p.active ? `/holidays/${p.slug}` : undefined}
+                    active={p.active} onToggle={setPackageActive} onDelete={deletePackage}
+                    blockedReason={p._count.bookings || p._count.reviews ? `Has ${[p._count.bookings && `${p._count.bookings} bookings`, p._count.reviews && `${p._count.reviews} reviews`].filter(Boolean).join(", ")}. Hide it instead.` : undefined} />
                 </td>
               </tr>
             ))}

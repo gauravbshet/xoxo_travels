@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { bricolage, bricolageRupee, dmSans, dmSansRupee } from "@/lib/fonts";
 import { siteUrl } from "@/lib/site-url";
+import { ErrorListener } from "@/components/monitoring/error-listener";
 import "./globals.css";
 
 const description =
@@ -22,7 +23,7 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#16d69a",
+  themeColor: "#0a6b52",
   width: "device-width",
   initialScale: 1,
 };
@@ -38,7 +39,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         {/* Marks JS as running before first paint; scroll reveals key off it. */}
         <script dangerouslySetInnerHTML={{ __html: "document.documentElement.classList.add('js')" }} />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">{children}<ErrorListener /></body>
     </html>
   );
 }

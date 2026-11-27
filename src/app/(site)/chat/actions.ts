@@ -5,7 +5,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { conversationFor, toMessageView, type MessageView } from "@/lib/chat";
-import { overLimit } from "@/lib/rate-limit";
+import { limit, overLimit } from "@/lib/rate-limit";
 import { channelFor, connectUrl, publish } from "@/lib/realtime";
 import { createUpload, extFor, type UploadTicket } from "@/lib/storage";
 import { verifyUpload } from "@/lib/uploads";
@@ -59,6 +59,7 @@ export async function requestChatImage(input: unknown): Promise<({ ok: true } & 
   if (!parsed.success) return { ok: false, message: "Invalid upload." };
   const a = await access(parsed.data.conversationId);
   if (!a || a.c.closed) return { ok: false, message: "You can't send to this chat." };
+  { const l = await limit("upload", a.user.id); if (l) return { ok: false, message: l }; }
   const { contentType, size } = parsed.data;
   if (!(uploads.photo.types as readonly string[]).includes(contentType)) return { ok: false, message: "Use a JPG, PNG or WebP photo." };
   if (size > uploads.photo.maxBytes) return { ok: false, message: `Photos must be ${Math.round(uploads.photo.maxBytes / 1024 / 1024)} MB or smaller.` };

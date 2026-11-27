@@ -58,3 +58,17 @@ export async function getTrustStats(): Promise<TrustStat[]> {
     ],
   );
 }
+
+/** Every approved review, newest first (the public reviews page). */
+export async function getApprovedReviews(limit = 60): Promise<Review[]> {
+  "use cache"; cacheLife("hours"); cacheTag(TAGS.reviews);
+  return withDatabaseFallback(
+    "approved reviews",
+    async (client) => (await client.review.findMany({
+      where: { approved: true },
+      include: { user: { select: { profile: { select: { displayName: true, city: true, verified: true } } } }, package: { select: { slug: true, title: true } }, booking: { select: { travelDate: true } } },
+      orderBy: { createdAt: "desc" }, take: limit,
+    })).map(toReview),
+    () => REVIEWS.slice(0, limit),
+  );
+}

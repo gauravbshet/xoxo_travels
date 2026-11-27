@@ -2,43 +2,49 @@
 
 /* ───────────────────────────────────────────────
    XOXO Travels — design tokens
-   Palette: warm off-white / logo green /
-   logo near-black / sunset coral / warm yellow
+   Palette "Emerald & Gold": warm ivory surfaces / deep emerald brand
+   (logo green) / champagne gold for deals / burnt orange for urgency only /
+   calm blue for trust. Every text pair below is WCAG AA checked.
    ─────────────────────────────────────────────── */
 @theme {
   /* Surfaces */
   --color-paper: #ffffff;
-  --color-cream: #fbf8f3;
-  --color-cream-deep: #f3eee5;
-  --color-ink: #070d1a;
-  --color-ink-soft: #44505f;
-  --color-ink-mute: #626b7c; /* 4.6:1 on cream-deep (AA) */
-  --color-line: #e6e1d8;
+  --color-cream: #fffdf8;      /* warm ivory page */
+  --color-cream-deep: #f5f0e6;
+  --color-ink: #0b1220;
+  --color-ink-soft: #465062;   /* 8.0:1 on ivory */
+  --color-ink-mute: #5e6676;   /* 5.1:1 on cream-deep (AA) */
+  --color-line: #e9e3d7;
 
-  /* Brand. The green and near-black tones match the XOXO logo.
-     Sky utilities remain as the shared brand-token names for consistency. */
-  --color-sky-50: #e5f8ef;
-  --color-sky-100: #bdf1db;
-  --color-sky-500: #16d69a;
-  --color-sky-600: #087f63; /* fills carrying white text: 4.7:1 */
-  --color-sky-700: #05654f; /* hover + text on sky-50 */
+  /* Brand: deep emerald, matching the XOXO logo.
+     Kept under the shared "sky" utility names so components don't change. */
+  --color-sky-50: #e3f4ec;
+  --color-sky-100: #c3e8d6;
+  --color-sky-500: #1e9c76;    /* focus rings + large text: 3.4:1 */
+  --color-sky-600: #0a6b52;    /* fills carrying white text: 6.5:1 */
+  --color-sky-700: #07523f;    /* hover + text on sky-50: 8.0:1 */
 
-  /* Coral — offers, urgency, warmth */
-  --color-coral-50: #fff0ea;
-  --color-coral-500: #ff7043;
-  --color-coral-600: #d93400; /* fills carrying white text: 4.7:1 */
-  --color-coral-700: #b82c00; /* coral text on white / coral-50 */
+  /* Urgency: burnt orange. Deadlines, "few seats left", sale badges. */
+  --color-coral-50: #fff1e8;
+  --color-coral-500: #ea580c;
+  --color-coral-600: #c2410c;  /* fills carrying white text: 5.2:1 */
+  --color-coral-700: #9a3412;  /* text on white / coral-50: 6.6:1 */
 
-  /* Green — trust, verified, success */
-  --color-leaf-50: #e7f8f4;
-  --color-leaf-500: #19b99a;
-  --color-leaf-600: #117b67; /* green text + fills: 4.7:1 */
-  --color-leaf-700: #0e6958;
+  /* Success: same family as the brand, so there is one green, not two. */
+  --color-leaf-50: #e3f4ec;
+  --color-leaf-500: #1e9c76;
+  --color-leaf-600: #0a6b52;
+  --color-leaf-700: #07523f;
 
-  /* Yellow — small highlights only */
-  --color-sun-50: #fff8e1;
-  --color-sun-400: #ffc53d;
-  --color-sun-500: #f5b000;
+  /* Champagne gold: deals, discount numbers, stars, highlights. */
+  --color-sun-50: #fbf3df;
+  --color-sun-400: #d4a73a;    /* ink on gold: 8.4:1; gold on ink: 8.4:1 */
+  --color-sun-500: #b8891f;    /* stars on white: 3.2:1 (icons) */
+
+  /* Trust: calm blue for the verified badge. */
+  --color-trust-50: #e8f0fc;
+  --color-trust-600: #2f6fd6;  /* white text: 4.8:1 */
+  --color-trust-700: #1f4fa8;  /* text on trust-50: 6.7:1 */
 
   /* Type */
   /* ₹-only face first: unicode-range limits it to that one glyph (lib/fonts.ts) */
@@ -53,9 +59,9 @@
   --radius-pill: 999px;
 
   /* Elevation — soft, never heavy */
-  --shadow-card: 0 1px 2px rgb(7 13 26 / 0.04), 0 8px 24px -12px rgb(7 13 26 / 0.12);
-  --shadow-card-hover: 0 2px 4px rgb(7 13 26 / 0.05), 0 18px 40px -16px rgb(7 13 26 / 0.2);
-  --shadow-float: 0 12px 40px -8px rgb(22 214 154 / 0.25);
+  --shadow-card: 0 1px 2px rgb(11 18 32 / 0.04), 0 8px 24px -12px rgb(11 18 32 / 0.12);
+  --shadow-card-hover: 0 2px 4px rgb(11 18 32 / 0.05), 0 18px 40px -16px rgb(11 18 32 / 0.2);
+  --shadow-float: 0 12px 40px -8px rgb(10 107 82 / 0.25);
 
   /* Motion — one easing, two durations */
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
@@ -136,7 +142,7 @@
   to { background-position: -200% 0; }
 }
 @utility skeleton {
-  background: linear-gradient(90deg, var(--color-cream-deep) 0%, #faf7f1 50%, var(--color-cream-deep) 100%);
+  background: linear-gradient(90deg, var(--color-cream-deep) 0%, #fbf8f1 50%, var(--color-cream-deep) 100%);
   background-size: 200% 100%;
   animation: shimmer 1.6s linear infinite;
   border-radius: var(--radius-md);
@@ -176,7 +182,7 @@
   position: relative;
   /* No background here: each band paints its own, so the notches are real
      holes. drop-shadow follows the cut-out shape (box-shadow wouldn't). */
-  filter: drop-shadow(0 2px 3px rgb(7 13 26 / 0.06)) drop-shadow(0 18px 28px rgb(7 13 26 / 0.16));
+  filter: drop-shadow(0 2px 3px rgb(11 18 32 / 0.06)) drop-shadow(0 18px 28px rgb(11 18 32 / 0.16));
 }
 @utility boarding-pass__stub {
   padding: 0.5rem 0.5rem 0;
@@ -215,4 +221,40 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .hero-img, .hero-rise { animation: none; }
+}
+
+/* ───────────────────────────────────────────────
+   Home promo carousel
+   ─────────────────────────────────────────────── */
+@keyframes promo-in { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes promo-float { 0%, 100% { transform: translateY(0) rotate(-6deg); } 50% { transform: translateY(-8px) rotate(-3deg); } }
+@keyframes promo-progress { from { width: 0%; } to { width: 100%; } }
+@utility promo-in {
+  animation: promo-in 550ms var(--ease-out-soft) both;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
+}
+@utility promo-float {
+  transform: rotate(-6deg);
+  animation: promo-float 5s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
+}
+
+/* ───────────────────────────────────────────────
+   Offers billboard: infinite marquee
+   The track holds the content twice; moving it by exactly -50% lands the
+   second copy where the first began, so the loop never shows a seam.
+   ─────────────────────────────────────────────── */
+@keyframes marquee { from { transform: translate3d(0, 0, 0); } to { transform: translate3d(-50%, 0, 0); } }
+@keyframes twinkle { 0%, 100% { opacity: 0.45; transform: scale(0.8) rotate(0deg); } 50% { opacity: 1; transform: scale(1.15) rotate(45deg); } }
+@utility marquee-track {
+  display: flex;
+  width: max-content;
+  animation: marquee var(--marquee-duration, 40s) linear infinite;
+  will-change: transform;
+  /* Reduced motion: no movement; the row becomes a normal swipeable list. */
+  @media (prefers-reduced-motion: reduce) { animation: none; will-change: auto; }
+}
+@utility twinkle {
+  animation: twinkle 2.4s ease-in-out infinite;
+  @media (prefers-reduced-motion: reduce) { animation: none; }
 }

@@ -48,7 +48,7 @@ export function usePayment(reference: string) {
     const rzp = new window.Razorpay({
       key: order.keyId, order_id: order.orderId, amount: order.amount, currency: "INR",
       name: "XOXO Travels", description: order.description, prefill: order.prefill,
-      theme: { color: "#087f63" },
+      theme: { color: "#0a6b52" },
       handler: async (r: RazorpayResponse) => finish(await verifyPayment({ orderId: r.razorpay_order_id, paymentId: r.razorpay_payment_id, signature: r.razorpay_signature })),
       modal: { ondismiss: () => setBusy(false) },
     });

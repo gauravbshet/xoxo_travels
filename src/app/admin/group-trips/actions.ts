@@ -79,3 +79,12 @@ export async function deleteTrip(id: unknown): Promise<{ ok: boolean; message?: 
   updateTag(TAGS.groupTrips);
   return { ok: true };
 }
+
+export async function setTripActive(id: unknown, active: unknown): Promise<{ ok: boolean; message?: string }> {
+  await assertAdmin();
+  const parsed = z.object({ id: z.string().min(1), active: z.boolean() }).safeParse({ id, active });
+  if (!parsed.success || !db) return { ok: false, message: "Invalid request." };
+  await db.groupTrip.update({ where: { id: parsed.data.id }, data: { active: parsed.data.active } });
+  updateTag(TAGS.groupTrips);
+  return { ok: true };
+}

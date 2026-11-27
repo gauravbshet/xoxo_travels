@@ -9,6 +9,7 @@ import { createRefund } from "@/lib/payments/razorpay";
 import { sendEmail } from "@/lib/email/send";
 import { refundShare } from "@/config/booking";
 import { formatINR } from "@/lib/format";
+import { reportError } from "@/lib/monitoring/server";
 
 /**
  * Cancels a booking and refunds it.
@@ -89,5 +90,5 @@ async function notify(b: { reference: string; travelerDetails: unknown }, amount
   const refund = amountPaise > 0 ? `A refund of ${formatINR(amountPaise / 100)} is on its way. Banks usually take 5 to 7 working days.` : "No refund applies under our cancellation policy.";
   const text = `Hi ${email.name || "there"},\n\nYour booking ${b.reference} has been cancelled. ${refund}\n\nQuestions? Reply to this email with your reference.\n\nXOXO Travels`;
   await sendEmail({ to: email.email, subject: `Booking ${b.reference} cancelled`, text, html: `<p>${text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/\n/g, "<br>")}</p>` })
-    .catch((e) => console.error("[email] cancellation notice failed:", e instanceof Error ? e.message : e));
+    .catch((e) => reportError(e, { tags: { area: "email", kind: "cancellation" } }));
 }

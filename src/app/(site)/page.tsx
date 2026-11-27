@@ -3,6 +3,7 @@ import { pageMeta } from "@/lib/metadata";
 import { siteUrl } from "@/lib/site-url";
 import { site } from "@/config/site";
 import { CategoryRow } from "@/components/home/category-row";
+import { PromoBanner } from "@/components/home/promo-banner";
 import { PopularDestinations } from "@/components/home/popular-destinations";
 import { FeaturedPackages } from "@/components/home/featured-packages";
 import { UpcomingGroupTrips } from "@/components/home/upcoming-group-trips";
@@ -40,11 +41,12 @@ export default function HomePage() {
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
       <Hero />
-      <CategoryRow />
-      <PopularDestinations />
-      <FeaturedPackages />
-      <UpcomingGroupTrips />
       <Offers />
+      <PromoBanner />
+      <CategoryRow />
+      <FeaturedPackages />
+      <PopularDestinations />
+      <UpcomingGroupTrips />
       <TrustStats />
       <FindPartnerPromo />
       <Testimonials />

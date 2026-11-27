@@ -8,6 +8,7 @@ import { ageOn } from "@/lib/profile";
 import { createUpload, extFor, publicUrl, removeObject, type UploadTicket } from "@/lib/storage";
 import { verifyUpload } from "@/lib/uploads";
 import { idDocumentTypes, profile as rules, uploads } from "@/config/profile";
+import { limit } from "@/lib/rate-limit";
 
 type Result = { ok: true } | { ok: false; message: string };
 
@@ -30,6 +31,7 @@ const profileSchema = z.object({
 export async function saveProfile(input: unknown): Promise<Result> {
   const user = await me();
   if (!user) return { ok: false, message: "Sign in to save your profile." };
+  { const l = await limit("profile", user.id); if (l) return { ok: false, message: l }; }
   const parsed = profileSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the form." };
   const p = parsed.data;
@@ -51,6 +53,7 @@ const uploadSchema = z.object({ kind: z.enum(["photo", "id"]), contentType: z.st
 export async function requestUpload(input: unknown): Promise<({ ok: true } & UploadTicket) | { ok: false; message: string }> {
   const user = await me();
   if (!user) return { ok: false, message: "Sign in to upload." };
+  { const l = await limit("upload", user.id); if (l) return { ok: false, message: l }; }
   const parsed = uploadSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: "Invalid upload." };
   const { kind, contentType, size } = parsed.data;
@@ -111,6 +114,7 @@ const docTypes = idDocumentTypes.map((d) => d.value) as unknown as [string, ...s
 export async function submitVerification(input: unknown): Promise<Result> {
   const user = await me();
   if (!user) return { ok: false, message: "Sign in first." };
+  { const l = await limit("verification", user.id); if (l) return { ok: false, message: l }; }
   const parsed = z.object({ key: z.string(), documentType: z.enum(docTypes, { error: "Choose the ID type." }) }).safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Invalid submission." };
   const blocked = await idBlocked(user.id);

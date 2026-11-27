@@ -1,9 +1,30 @@
 import "server-only";
 import { db } from "@/lib/db";
+import { headers } from "next/headers";
 import { limits } from "@/config/partners";
+import type { RateRule } from "@/config/security";
+import { hit, ipFrom, waitText } from "@/lib/rate-limit-core";
 
-/* Rate limits counted from rows already in Postgres. No extra service; good enough
-   for launch traffic. Phase 6 swaps the counting for Upstash behind this same API. */
+/* Two kinds of limits:
+   - overLimit(): daily quotas counted from rows already in Postgres (exact, survives restarts).
+   - limit():     short-window burst limits in Upstash (memory in dev), see config/security.ts. */
+
+/** Returns a message to show when `id` is over the `rule` limit, else null. */
+export async function limit(rule: RateRule, id: string): Promise<string | null> {
+  try {
+    const r = await hit(rule, id);
+    return r.ok ? null : `Too many attempts. Try again in ${waitText(r.retryAfterSec)}.`;
+  } catch (e) {
+    // Production without Upstash: refuse loudly rather than run unprotected.
+    console.error("[rate-limit]", e instanceof Error ? e.message : e);
+    return "This is unavailable right now. Try again later.";
+  }
+}
+
+/** The caller's IP address, for limits on actions that don't need sign-in. */
+export async function clientIp() {
+  return ipFrom(await headers());
+}
 
 type Kind = "request" | "message" | "report";
 

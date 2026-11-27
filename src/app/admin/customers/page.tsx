@@ -50,7 +50,7 @@ export default async function AdminCustomers({ searchParams }: PageProps<"/admin
                 <td className={`${td} tabular`}>{u._count.reportsGot ? <span className="font-semibold text-coral-700">{u._count.reportsGot}</span> : 0}</td>
                 <td className={td}><div className="flex flex-wrap gap-1">
                   {u.role === "admin" && <Badge tone="blue">Admin</Badge>}
-                  {u.profile?.verified && <Badge tone="green">Verified</Badge>}
+                  {u.profile?.verified && <Badge tone="trust">Verified</Badge>}
                   {u.profile?.discoverable && <Badge>In Find a Partner</Badge>}
                 </div></td>
               </tr>

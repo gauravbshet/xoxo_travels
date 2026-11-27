@@ -290,7 +290,7 @@ export function CheckoutForm({ item, account }: { item: CheckoutFormItem; accoun
             <ul className="grid gap-2.5 rounded-xl border border-line/70 bg-paper p-4 text-sm shadow-card">
               <li className="flex items-start gap-2.5"><Svg d={Icon.shield} className="size-5 text-sky-600" /><span><span className="font-semibold text-ink">Secure payment</span><span className="block text-ink-soft">UPI, cards and netbanking via Razorpay</span></span></li>
               <li className="flex items-start gap-2.5"><Svg d={Icon.refund} className="size-5 text-sky-600" /><span><span className="font-semibold text-ink">Free cancellation</span><span className="block text-ink-soft">Full refund up to {freeCancelDays} days before departure</span></span></li>
-              <li className="flex items-start gap-2.5"><Svg d={Icon.receipt} className="size-5 text-sky-600" /><span><span className="font-semibold text-ink">No hidden charges</span><span className="block text-ink-soft">GST shown upfront; invoice emailed after payment</span></span></li>
+              <li className="flex items-start gap-2.5"><Svg d={Icon.receipt} className="size-5 text-sky-600" /><span><span className="font-semibold text-ink">No hidden charges</span><span className="block text-ink-soft">GST shown upfront; GST invoice in My bookings after payment</span></span></li>
             </ul>
           </div>
         </aside>

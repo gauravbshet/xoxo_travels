@@ -5,6 +5,8 @@ import { adminOr404 } from "@/lib/auth/admin";
 import { AdminHeader, Panel, Table, td, th } from "@/components/admin/ui";
 import { Badge, Button } from "@/components/ui";
 import { formatDateRange, formatINR } from "@/lib/format";
+import { RowActions } from "@/components/admin/row-actions";
+import { deleteTrip, setTripActive } from "./actions";
 
 export const metadata: Metadata = { title: "Group trips" };
 
@@ -13,7 +15,7 @@ export default async function AdminTrips() {
   const rows = await db!.groupTrip.findMany({
     orderBy: [{ active: "desc" }, { startDate: "asc" }],
     select: { id: true, slug: true, title: true, startDate: true, endDate: true, price: true, seatsTotal: true, active: true, featured: true,
-      destination: { select: { name: true } }, _count: { select: { waitlist: true } },
+      destination: { select: { name: true } }, _count: { select: { waitlist: true, bookings: true } },
       bookings: { where: { status: { in: ["confirmed", "completed"] } }, select: { travelers: true } } },
   });
   const today = new Date().toISOString().slice(0, 10);
@@ -22,7 +24,7 @@ export default async function AdminTrips() {
       <AdminHeader title="Group trips" blurb={`${rows.length} trips.`} action={<Button href="/admin/group-trips/new">New trip</Button>} />
       {rows.length === 0 ? <Panel className="p-6 text-center text-ink-soft">No trips yet.</Panel> : (
         <Table>
-          <thead><tr><th className={th}>Trip</th><th className={th}>Dates</th><th className={th}>Price</th><th className={th}>Seats sold</th><th className={th}>Waitlist</th><th className={th}>Status</th></tr></thead>
+          <thead><tr><th className={th}>Trip</th><th className={th}>Dates</th><th className={th}>Price</th><th className={th}>Seats sold</th><th className={th}>Waitlist</th><th className={th}>Status</th><th className={`${th} text-right`}>Actions</th></tr></thead>
           <tbody>
             {rows.map((t) => {
               const sold = t.bookings.reduce((a, b) => a + b.travelers, 0);
@@ -39,6 +41,11 @@ export default async function AdminTrips() {
                     {sold >= t.seatsTotal && !past && <Badge tone="coral">Sold out</Badge>}
                     {t.featured && <Badge tone="blue">Featured</Badge>}
                   </div></td>
+                  <td className={`${td} text-right`}>
+                    <RowActions id={t.id} name={t.title} editHref={`/admin/group-trips/${t.id}`} viewHref={t.active ? `/group-trips/${t.slug}` : undefined}
+                      active={t.active} onToggle={setTripActive} onDelete={deleteTrip}
+                      blockedReason={t._count.bookings ? `Has ${t._count.bookings} bookings. Hide it instead.` : undefined} />
+                  </td>
                 </tr>
               );
             })}

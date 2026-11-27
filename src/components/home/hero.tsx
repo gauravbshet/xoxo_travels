@@ -9,7 +9,7 @@ export async function Hero() {
   return (
     <section className="relative isolate">
       {/* Photo */}
-      <div className="absolute inset-0 -z-10 overflow-hidden bg-[linear-gradient(160deg,#070d1a,#087f63_55%,#16d69a)]">
+      <div className="absolute inset-0 -z-10 overflow-hidden bg-[linear-gradient(160deg,#0b1220,#0a6b52_55%,#1e9c76)]">
         <Image
           src={img.src}
           alt={img.alt}
@@ -19,7 +19,7 @@ export async function Hero() {
           className="hero-img object-cover"
         />
         {/* Legibility scrim: top-left for text, bottom fade into the cream page */}
-        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgb(7_13_26/0.62)_0%,rgb(7_13_26/0.28)_55%,rgb(7_13_26/0.1)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgb(11_18_32/0.62)_0%,rgb(11_18_32/0.28)_55%,rgb(11_18_32/0.1)_100%)]" />
         <div className="absolute inset-x-0 bottom-0 h-40 bg-[linear-gradient(to_bottom,transparent,var(--color-cream))]" />
       </div>
 

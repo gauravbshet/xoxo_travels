@@ -48,7 +48,7 @@ export default async function DestinationPage({ params }: PageProps<"/destinatio
       <section className="relative isolate">
         <div className="absolute inset-0 -z-10 overflow-hidden bg-ink">
           <Photo src={d.image.src} alt="" fill priority sizes="100vw" className="object-cover opacity-80" />
-          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgb(10_16_28/0.85),rgb(10_16_28/0.3)_60%,rgb(10_16_28/0.2))]" />
+          <div className="absolute inset-0 bg-[linear-gradient(to_top,rgb(11_18_32/0.85),rgb(11_18_32/0.3)_60%,rgb(11_18_32/0.2))]" />
         </div>
         <div className="container-x pb-10 pt-24 text-white sm:pb-14 sm:pt-32">
           <nav aria-label="Breadcrumb" className="mb-4 text-sm text-white/70">

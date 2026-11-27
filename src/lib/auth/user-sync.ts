@@ -9,7 +9,7 @@ export function normalizeEmail(email: string | null | undefined): string | null 
   return value.toLowerCase();
 }
 
-function roleForEmail(email: string): "admin" | "user" {
+export function roleForEmail(email: string): "admin" | "user" {
   const admins = new Set(
     (process.env.ADMIN_EMAILS ?? "")
       .split(",")
@@ -84,5 +84,5 @@ export async function upsertClerkUser(input: {
       where: { clerkId },
       include: { profile: true },
     });
-  });
+  }, { maxWait: 10_000, timeout: 15_000 });
 }

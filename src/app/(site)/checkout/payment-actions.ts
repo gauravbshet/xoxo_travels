@@ -7,6 +7,7 @@ import { getCurrentUser } from "@/lib/auth/current-user";
 import { takenSeats } from "@/lib/checkout";
 import { createOrder, paymentMode, publicKeyId, verifyPaymentSignature } from "@/lib/payments/razorpay";
 import { markFailed, markPaid, type ConfirmResult } from "@/lib/payments/confirm";
+import { limit } from "@/lib/rate-limit";
 
 export type StartPaymentResult =
   | {
@@ -32,6 +33,7 @@ export async function startPayment(reference: unknown): Promise<StartPaymentResu
   if (!db) return { ok: false, message: "Connect DATABASE_URL to take payments." };
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Sign in to pay." };
+  { const l = await limit("payment", user.id); if (l) return { ok: false, message: l }; }
 
   const mode = paymentMode(); // throws in production without keys
   const now = new Date();

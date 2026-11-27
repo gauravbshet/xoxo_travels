@@ -7,12 +7,12 @@ const tones: Record<Category["tone"], string> = {
   blue:   "bg-sky-50 text-sky-600 group-hover:bg-sky-600 group-hover:text-white",
   green:  "bg-leaf-50 text-leaf-600 group-hover:bg-leaf-600 group-hover:text-white",
   coral:  "bg-coral-50 text-coral-700 group-hover:bg-coral-600 group-hover:text-white",
-  yellow: "bg-sun-50 text-[#8a6100] group-hover:bg-sun-400 group-hover:text-ink",
+  yellow: "bg-sun-50 text-[#7a5a00] group-hover:bg-sun-400 group-hover:text-ink",
 };
 
 export function CategoryRow() {
   return (
-    <section aria-labelledby="categories-heading" className="pt-4 pb-0">
+    <section aria-labelledby="categories-heading" className="pt-5 pb-0 sm:pt-6">
       <div className="container-x">
         <h2 id="categories-heading" className="sr-only">Browse by category</h2>
         <ul className="-mx-4 flex snap-x snap-mandatory gap-3 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:mx-0 sm:grid sm:grid-cols-3 sm:px-0 sm:pb-0 lg:grid-cols-6">

@@ -29,12 +29,18 @@ function create(): PrismaClient | null {
     throw new Error(message);
   }
 
-  const adapter = new PrismaPg({ connectionString: url, max: process.env.NODE_ENV === "production" ? 5 : 2 });
-  return new PrismaClient({ adapter, log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"] });
+  // Serverless (Vercel) runs many instances at once, each with its own pool, all sharing
+  // Supabase's pooler. Keep each pool small and let idle connections go quickly.
+  // DATABASE_URL must be the transaction pooler (port 6543, ?pgbouncer=true) in production.
+  const max = Number(process.env.DB_POOL_MAX) || (process.env.NODE_ENV === "production" ? 3 : 5);
+  const adapter = new PrismaPg({ connectionString: url, max, idleTimeoutMillis: 10_000, connectionTimeoutMillis: 10_000 });
+  // Supabase pooler can be slow to open a transaction; wait longer than Prisma's 2s default.
+  return new PrismaClient({ adapter, log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"], transactionOptions: { maxWait: 10_000, timeout: 15_000 } });
 }
 
+// One client per process (also survives hot reloads in dev and module re-evaluation in prod).
 export const db: PrismaClient | null = g.prisma ?? create();
-if (process.env.NODE_ENV !== "production" && db) g.prisma = db;
+if (db) g.prisma = db;
 
 export const hasDb = db !== null;
 

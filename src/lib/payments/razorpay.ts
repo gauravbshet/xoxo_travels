@@ -6,28 +6,40 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 
    Mode:
    - "razorpay": key id + secret are set (and aren't the .env.example placeholders).
-   - "mock":     keys missing, development only. A Pay / Fail screen stands in.
+   - "mock":     keys missing (development only), or live keys while running
+                 `npm run dev` (unless RAZORPAY_ALLOW_LIVE_IN_DEV=true). A Pay / Fail screen stands in.
    In production without keys, paymentMode() throws. Never a fake payment in prod. */
 
 const real = (v: string | undefined) => (v && v.trim() && !/x{6,}/i.test(v) ? v.trim() : undefined);
 
-const keyId = () => real(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID);
+/* The key id is public (it is handed to the checkout popup), so either name works. */
+const keyId = () => real(process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID) ?? real(process.env.RAZORPAY_KEY_ID);
 const keySecret = () => real(process.env.RAZORPAY_KEY_SECRET);
 export const webhookSecret = () => real(process.env.RAZORPAY_WEBHOOK_SECRET);
 
 export type PaymentMode = "razorpay" | "mock";
 
+let liveDevWarned = false;
+
 export function paymentMode(): PaymentMode {
-  if (keyId() && keySecret()) return "razorpay";
+  const id = keyId();
+  if (id && keySecret()) {
+    // Safety: live keys never charge real money from `npm run dev` unless explicitly allowed.
+    if (id.startsWith("rzp_live_") && process.env.NODE_ENV !== "production" && process.env.RAZORPAY_ALLOW_LIVE_IN_DEV !== "true") {
+      if (!liveDevWarned) { console.warn("[payments] Live Razorpay keys found in development; using the test-payment screen. Set RAZORPAY_ALLOW_LIVE_IN_DEV=true to take real payments locally."); liveDevWarned = true; }
+      return "mock";
+    }
+    return "razorpay";
+  }
   if (process.env.NODE_ENV === "production") {
-    throw new Error("Razorpay keys are missing. Set NEXT_PUBLIC_RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET.");
+    throw new Error("Razorpay keys are missing. Set RAZORPAY_KEY_ID (or NEXT_PUBLIC_RAZORPAY_KEY_ID) and RAZORPAY_KEY_SECRET.");
   }
   return "mock";
 }
 
 export function publicKeyId() {
   const id = keyId();
-  if (!id) throw new Error("NEXT_PUBLIC_RAZORPAY_KEY_ID is not set.");
+  if (!id) throw new Error("RAZORPAY_KEY_ID is not set.");
   return id;
 }
 

@@ -4,6 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getGroupTripBySlug } from "@/lib/data/group-trips";
 import { booking } from "@/config/booking";
+import { clientIp, limit } from "@/lib/rate-limit";
 
 export type WaitlistState = { status: "idle" | "ok" | "error"; message: string };
 
@@ -19,6 +20,7 @@ const schema = z.object({
 export async function joinWaitlist(_prev: WaitlistState, formData: FormData): Promise<WaitlistState> {
   const parsed = schema.safeParse(Object.fromEntries(formData));
   if (!parsed.success) return { status: "error", message: parsed.error.issues[0]?.message ?? "Check the form and try again." };
+  { const l = await limit("waitlist", await clientIp()); if (l) return { status: "error", message: l }; }
   const { slug, name, email, travelers } = parsed.data;
 
   const trip = await getGroupTripBySlug(slug);

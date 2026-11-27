@@ -78,7 +78,7 @@ export default function Page() {
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
           <Card interactive flush>
             <CardMedia>
-              <div className="h-full w-full bg-[linear-gradient(135deg,#070d1a,#16d69a)]" />
+              <div className="h-full w-full bg-[linear-gradient(135deg,#0b1220,#1e9c76)]" />
             </CardMedia>
             <CardBody className="space-y-2">
               <div className="flex items-center justify-between">

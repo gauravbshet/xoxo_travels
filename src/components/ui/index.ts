@@ -9,6 +9,7 @@ export { Reveal } from "./reveal";
 export { Photo } from "./photo";
 export { Carousel } from "./carousel";
 export { Rail } from "./rail";
+export { AutoScroller } from "./auto-scroller";
 export { FilterChips, FilterPanel, ResultsBar, EmptyState, PageHeader } from "./filter-chips";
 export { Counter } from "./counter";
 export { CopyCode } from "./copy-code";

@@ -9,7 +9,7 @@ export async function PopularDestinations() {
   ]);
 
   return (
-    <Section aria-labelledby="popular-heading" className="pt-3 sm:pt-4">
+    <Section aria-labelledby="popular-heading">
       <SectionHeader
         id="popular-heading"
         eyebrow="Where next"

@@ -30,7 +30,7 @@ export function Logo({ className, light, size = "md" }: LogoProps) {
         priority
         sizes={size === "lg" ? "(min-width: 1024px) 112px, (min-width: 640px) 96px, 78px" : "(max-width: 640px) 72px, 96px"}
         className={cn(
-          "w-auto object-contain drop-shadow-[0_3px_8px_rgb(7_13_26/0.18)]",
+          "w-auto object-contain drop-shadow-[0_3px_8px_rgb(11_18_32/0.18)]",
           heights[size],
           light ? "brightness-100" : "",
         )}

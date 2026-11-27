@@ -20,12 +20,12 @@ export async function ogFonts() {
 }
 
 /** Shared card layout: brand mark, eyebrow, headline, footer line. */
-export function OgCard({ eyebrow, title, footer, accent = "#ffc53d" }: { eyebrow: string; title: string; footer: string; accent?: string }) {
+export function OgCard({ eyebrow, title, footer, accent = "#d4a73a" }: { eyebrow: string; title: string; footer: string; accent?: string }) {
   return (
-    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 72, background: "linear-gradient(135deg, #070d1a 0%, #087f63 55%, #16d69a 100%)", color: "#fff", fontFamily: "DM Sans, DM Sans Ext" }}>
+    <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", padding: 72, background: "linear-gradient(135deg, #0b1220 0%, #0a6b52 55%, #1e9c76 100%)", color: "#fff", fontFamily: "DM Sans, DM Sans Ext" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
         <div style={{ width: 64, height: 64, borderRadius: 16, background: "#fff", display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M3 13.5 12 4l9 9.5M7 11v8h10v-8" stroke="#16d69a" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none"><path d="M3 13.5 12 4l9 9.5M7 11v8h10v-8" stroke="#1e9c76" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" /></svg>
         </div>
         <div style={{ display: "flex", fontFamily: "Bricolage, Bricolage Ext", fontSize: 40, letterSpacing: -1 }}>XOXO<span style={{ color: accent }}>.</span>Travels</div>
       </div>
@@ -35,7 +35,7 @@ export function OgCard({ eyebrow, title, footer, accent = "#ffc53d" }: { eyebrow
       </div>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 28 }}>
         <span style={{ opacity: 0.9 }}>{footer}</span>
-        <span style={{ background: accent, color: "#070d1a", padding: "10px 22px", borderRadius: 999, fontSize: 26 }}>Book on xoxotravels.in</span>
+        <span style={{ background: accent, color: "#0b1220", padding: "10px 22px", borderRadius: 999, fontSize: 26 }}>Book on xoxotravels.in</span>
       </div>
     </div>
   );

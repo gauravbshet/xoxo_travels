@@ -36,16 +36,44 @@ export function verifyLocalStream(channel: string, exp: string, given: string) {
   return a.length === b.length && timingSafeEqual(a, b) && Number(exp) * 1000 > Date.now();
 }
 
+/* ───────── Ably tokens ───────── */
+
+async function requestToken(clientId: string, capability: Record<string, string[]>, ttlMs: number) {
+  const key = ablyKey()!;
+  const keyName = key.split(":")[0];
+  const res = await fetch(`https://rest.ably.io/keys/${encodeURIComponent(keyName)}/requestToken`, {
+    method: "POST",
+    headers: { Authorization: `Basic ${Buffer.from(key).toString("base64")}`, "Content-Type": "application/json" },
+    body: JSON.stringify({ keyName, clientId, ttl: ttlMs, capability: JSON.stringify(capability), timestamp: Date.now() }),
+    cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`Ably token request failed (${res.status})`);
+  return ((await res.json()) as { token: string }).token;
+}
+
+/** One publish-only token per server process, renewed 5 minutes before it expires. */
+const tokenCache = g as unknown as { __xoxoAblyServer?: { token: string; exp: number } };
+async function serverToken() {
+  const c = tokenCache.__xoxoAblyServer;
+  if (c && c.exp - Date.now() > 5 * 60_000) return c.token;
+  const ttl = 60 * 60_000;
+  const token = await requestToken("xoxo-server", { "chat:*": ["publish"] }, ttl);
+  tokenCache.__xoxoAblyServer = { token, exp: Date.now() + ttl };
+  return token;
+}
+
 /* ───────── API ───────── */
 
 /** Push an event to everyone watching a channel. Never throws: delivery is best effort. */
 export async function publish(channel: string, event: RealtimeEvent) {
   try {
     if (realtimeMode() === "local") { localBus.emit(channel, event); return; }
-    const key = ablyKey()!;
+    // Publish with a short-lived server token, not the raw key: works even when the key
+    // has revocable tokens enabled or channels require an identified client.
+    const token = await serverToken();
     const res = await fetch(`https://rest.ably.io/channels/${encodeURIComponent(channel)}/messages`, {
       method: "POST",
-      headers: { Authorization: `Basic ${Buffer.from(key).toString("base64")}`, "Content-Type": "application/json" },
+      headers: { Authorization: `Bearer ${Buffer.from(token).toString("base64")}`, "Content-Type": "application/json" },
       body: JSON.stringify({ name: event.type, data: JSON.stringify(event) }),
       cache: "no-store",
     });
@@ -61,15 +89,6 @@ export async function connectUrl(channel: string, clientId: string, ttlSeconds: 
     const exp = String(Math.floor(Date.now() / 1000) + ttlSeconds);
     return `/api/realtime/local?${new URLSearchParams({ channel, exp, sig: sig(channel, exp) })}`;
   }
-  const key = ablyKey()!;
-  const keyName = key.split(":")[0];
-  const res = await fetch(`https://rest.ably.io/keys/${encodeURIComponent(keyName)}/requestToken`, {
-    method: "POST",
-    headers: { Authorization: `Basic ${Buffer.from(key).toString("base64")}`, "Content-Type": "application/json" },
-    body: JSON.stringify({ keyName, clientId, ttl: ttlSeconds * 1000, capability: JSON.stringify({ [channel]: ["subscribe"] }), timestamp: Date.now() }),
-    cache: "no-store",
-  });
-  if (!res.ok) throw new Error(`Ably token request failed (${res.status})`);
-  const { token } = (await res.json()) as { token: string };
+  const token = await requestToken(clientId, { [channel]: ["subscribe"] }, ttlSeconds * 1000);
   return `https://realtime.ably.io/event-stream?${new URLSearchParams({ channels: channel, v: "1.2", accessToken: token, enveloped: "false" })}`;
 }

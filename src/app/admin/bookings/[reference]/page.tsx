@@ -30,7 +30,7 @@ export default async function AdminBooking({ params }: PageProps<"/admin/booking
 
   return (
     <>
-      <p className="mb-2 text-sm"><Link href="/admin/bookings" className="text-sky-600 hover:underline">← All bookings</Link></p>
+      <p className="mb-2 flex flex-wrap justify-between gap-2 text-sm"><Link href="/admin/bookings" className="text-sky-600 hover:underline">← All bookings</Link><Link href={`/account/bookings/${reference}/invoice`} className="font-semibold text-sky-700 hover:underline">GST invoice</Link></p>
       <AdminHeader title={b.reference} blurb={`Created ${formatDate(b.createdAt)}`} action={<BookingStatus status={b.status} />} />
 
       {row.notes && <Panel className="mb-6 whitespace-pre-line bg-cream-deep p-4 text-sm text-ink">{row.notes}</Panel>}

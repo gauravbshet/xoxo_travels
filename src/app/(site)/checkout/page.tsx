@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { connection } from "next/server";
 import { Suspense } from "react";
 import { Button, EmptyState, Skeleton } from "@/components/ui";
 import { CheckoutForm } from "@/components/checkout/checkout-form";
@@ -21,6 +22,7 @@ export default function CheckoutPage({ searchParams }: PageProps<"/checkout">) {
 }
 
 async function CheckoutContent({ searchParams }: { searchParams: PageProps<"/checkout">["searchParams"] }) {
+  await connection();
   const sp = await searchParams;
   const ref = parseRef(sp);
   if (!ref) {

@@ -4,7 +4,7 @@ import { z } from "zod";
 import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { areBlocked, partnerStatus } from "@/lib/partners";
-import { overLimit } from "@/lib/rate-limit";
+import { limit, overLimit } from "@/lib/rate-limit";
 import { roundCoord } from "@/lib/geo";
 import { channelFor, publish } from "@/lib/realtime";
 import { partners as rules } from "@/config/partners";
@@ -56,6 +56,7 @@ const tripSchema = z.object({
 export async function declareTrip(input: unknown): Promise<Result> {
   const { user, error } = await readyUser();
   if (!user) return { ok: false, message: error };
+  { const l = await limit("partnerTrip", user.id); if (l) return { ok: false, message: l }; }
   const parsed = tripSchema.safeParse(input);
   if (!parsed.success) return { ok: false, message: parsed.error.issues[0]?.message ?? "Check the form." };
   const t = parsed.data;

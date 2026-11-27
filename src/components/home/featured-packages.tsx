@@ -1,25 +1,21 @@
-import { Carousel, Reveal, Section, SectionHeader } from "@/components/ui";
-import { PackageCard } from "@/components/packages/package-card";
-import { getFeaturedPackages } from "@/lib/data/packages";
+import { Section, SectionHeader } from "@/components/ui";
+import { searchPackages } from "@/lib/data/packages";
+import { DealsTabs } from "./deals-tabs";
 
+/* Trending, best deals, budget picks and "for you", in one tabbed row.
+   id="deals" is the target of the promo banner's "Explore deals" buttons. */
 export async function FeaturedPackages() {
-  const packages = await getFeaturedPackages(8);
+  const packages = await searchPackages();
   return (
-    <Section aria-labelledby="packages-heading" className="bg-paper">
+    <Section id="deals" aria-labelledby="packages-heading" className="scroll-mt-20 pt-5 sm:pt-6 bg-[linear-gradient(180deg,var(--color-paper)_0%,var(--color-cream)_100%)]">
       <SectionHeader
         id="packages-heading"
-        eyebrow="Holiday packages"
-        title="Trips people are booking this season"
+        eyebrow="Hand-picked for you"
+        title="Deals worth grabbing"
         blurb="Flights, stays and sightseeing bundled. Add up to three to compare side by side."
         action={{ label: "All packages", href: "/holidays" }}
       />
-      <Carousel label="Featured holiday packages">
-        {packages.map((p, i) => (
-          <Reveal as="li" key={p.id} delay={i * 60} className="w-[85vw] shrink-0 snap-start sm:w-[45vw] lg:w-[calc((100%-3rem)/4)]">
-            <PackageCard p={p} priority={i < 2} />
-          </Reveal>
-        ))}
-      </Carousel>
+      <DealsTabs packages={packages} />
     </Section>
   );
 }

@@ -54,6 +54,9 @@ async function List() {
               {b.status === "cancelled" && <p className="mt-1 text-sm text-ink-mute">This booking was cancelled.</p>}
             </div>
           </div>
+          {(b.status === "confirmed" || b.status === "completed" || b.status === "refunded") && (
+            <div className="mt-3 border-t border-line/70 pt-3"><Link href={`/account/bookings/${b.reference}/invoice`} className="text-sm font-semibold text-sky-700 hover:underline">View GST invoice</Link></div>
+          )}
           {b.status === "pending" && <div className="mt-4 border-t border-line/70 pt-4 sm:flex sm:justify-end"><PayNowButton reference={b.reference} total={b.total} /></div>}
           {b.reviewable && <div className="mt-4 border-t border-line/70 pt-4"><ReviewForm reference={b.reference} title={b.title} /></div>}
           {b.review && <p className="mt-3 border-t border-line/70 pt-3 text-sm text-ink-soft">{b.review.approved ? "Thanks, your review is live." : "Thanks, your review is waiting for a quick check."}</p>}

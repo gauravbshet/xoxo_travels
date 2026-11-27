@@ -92,6 +92,7 @@ async function Content({ searchParams }: { searchParams: PageProps<"/checkout/co
       )}
 
       <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        {confirmed && <Button href={`/account/bookings/${b.reference}/invoice`} variant="outline" className="flex-1">GST invoice</Button>}
         <Button href="/account/bookings" variant="outline" className="flex-1">My bookings</Button>
         <Button href={b.href} variant="outline" className="flex-1">View the trip</Button>
       </div>

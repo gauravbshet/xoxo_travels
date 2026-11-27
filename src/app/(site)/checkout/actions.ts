@@ -6,6 +6,7 @@ import { db } from "@/lib/db";
 import { getCurrentUser } from "@/lib/auth/current-user";
 import { checkCoupon, parseRef, resolveItem, takenSeats } from "@/lib/checkout";
 import { booking, priceFor } from "@/config/booking";
+import { limit } from "@/lib/rate-limit";
 
 /* Every action re-reads price, seats and coupon on the server. Nothing the
    browser sends about money is trusted. */
@@ -28,6 +29,7 @@ export async function applyCoupon(input: unknown): Promise<CouponState> {
   if (!parsed.success) return { ok: false, message: "Enter a valid coupon code." };
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Sign in to apply a coupon." };
+  { const l = await limit("coupon", user.id); if (l) return { ok: false, message: l }; }
   const ref = toRef(parsed.data.ref);
   if (!ref) return { ok: false, message: "Your booking details are incomplete. Go back and pick again." };
   const res = await resolveItem(ref);
@@ -71,6 +73,7 @@ export async function createBooking(input: unknown): Promise<BookingState> {
   }
   const user = await getCurrentUser();
   if (!user) return { ok: false, message: "Sign in to continue." };
+  { const l = await limit("checkout", user.id); if (l) return { ok: false, message: l }; }
 
   const ref = toRef(data.ref);
   if (!ref) return { ok: false, message: "Your booking details are incomplete. Go back and pick again." };

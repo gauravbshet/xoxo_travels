@@ -6,6 +6,7 @@ import { Itinerary } from "@/components/packages/itinerary";
 import { BookingBox, MobileBookBar } from "@/components/packages/booking-box";
 import { PackageCard } from "@/components/packages/package-card";
 import { CompareToggle } from "@/components/packages/compare-toggle";
+import { TrackView } from "@/components/packages/track-view";
 import { getAllPackageSlugs, getPackageDetail, getPackageReviews, getSimilarPackages } from "@/lib/data/package-details";
 import { booking } from "@/config/booking";
 import { formatDuration, formatINR } from "@/lib/format";
@@ -71,6 +72,7 @@ export default async function PackagePage({ params }: PageProps<"/holidays/[slug
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }} />
+      <TrackView slug={pkg.slug} destinationSlug={pkg.destinationSlug} themes={pkg.themes} />
 
       <div className="container-x pb-28 pt-6 sm:pt-8 lg:pb-16">
         <nav aria-label="Breadcrumb" className="mb-4 text-sm text-ink-mute">

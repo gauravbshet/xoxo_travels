@@ -219,6 +219,7 @@ model Verification {
   createdAt   DateTime @default(now())
 
   @@index([status, createdAt])
+  @@index([userId, status])
 }
 
 // ───────────────────────── Commerce ─────────────────────────
@@ -259,6 +260,9 @@ model Booking {
   visaAssistance   Boolean @default(false)
   esimRequired     Boolean @default(false)
   flightAssistance Boolean @default(false)
+  /// GST tax invoice number, e.g. XO/26-27/00042. Assigned once, on confirmed payment.
+  invoiceNumber String?   @unique
+  invoiceDate   DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
@@ -267,6 +271,11 @@ model Booking {
 
   @@index([userId, createdAt])
   @@index([status])
+  /// Seat counts per trip (checked on every trip page and checkout)
+  @@index([groupTripId, status])
+  @@index([packageId])
+  /// Expiring unpaid holds (scheduled job)
+  @@index([status, createdAt])
 }
 
 enum PaymentStatus {
@@ -310,6 +319,7 @@ model Review {
   createdAt  DateTime @default(now())
 
   @@index([packageId, approved])
+  @@index([approved, createdAt])
 }
 
 // ───────────────────────── Find a travel partner ─────────────────────────
@@ -335,6 +345,7 @@ model PartnerTrip {
 
   @@index([destinationText, startDate])
   @@index([lat, lng])
+  @@index([userId, active])
 }
 
 enum RequestStatus {
@@ -380,6 +391,8 @@ model Participant {
   lastReadAt     DateTime?
 
   @@id([conversationId, userId])
+  /// "My chats" list
+  @@index([userId])
 }
 
 enum MessageKind {
@@ -400,6 +413,8 @@ model Message {
   createdAt      DateTime @default(now())
 
   @@index([conversationId, createdAt])
+  /// Per-user message rate limit
+  @@index([senderId, createdAt])
 }
 
 model Block {
@@ -410,6 +425,7 @@ model Block {
   createdAt DateTime @default(now())
 
   @@id([blockerId, blockedId])
+  @@index([blockedId])
 }
 
 model Report {
@@ -425,6 +441,8 @@ model Report {
   createdAt  DateTime @default(now())
 
   @@index([resolved, createdAt])
+  @@index([reporterId, createdAt])
+  @@index([reportedId])
 }
 
 // ───────────────────────── Community ─────────────────────────
@@ -439,4 +457,11 @@ model CommunityPhoto {
   approved  Boolean  @default(false)
   sortOrder Int      @default(0)
   createdAt DateTime @default(now())
+}
+
+/// Running GST invoice number per Indian financial year (Apr–Mar), e.g. fy "26-27".
+/// Invoice numbers must be unique and consecutive within a financial year.
+model InvoiceCounter {
+  fy   String @id
+  last Int    @default(0)
 }

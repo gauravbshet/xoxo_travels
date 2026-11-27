@@ -4,6 +4,8 @@ import { db } from "@/lib/db";
 import { adminOr404 } from "@/lib/auth/admin";
 import { AdminHeader, Panel, Table, td, th } from "@/components/admin/ui";
 import { Badge, Button } from "@/components/ui";
+import { RowActions } from "@/components/admin/row-actions";
+import { deleteDestination } from "./actions";
 
 export const metadata: Metadata = { title: "Destinations" };
 
@@ -11,14 +13,14 @@ export default async function AdminDestinations() {
   await adminOr404();
   const rows = await db!.destination.findMany({
     orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    select: { id: true, name: true, slug: true, area: true, region: true, featured: true, _count: { select: { packages: true, groupTrips: true } } },
+    select: { id: true, name: true, slug: true, area: true, region: true, featured: true, _count: { select: { packages: true, groupTrips: true, partnerTrips: true } } },
   });
   return (
     <>
       <AdminHeader title="Destinations" blurb={`${rows.length} destinations.`} action={<Button href="/admin/destinations/new">New destination</Button>} />
       {rows.length === 0 ? <Panel className="p-6 text-center text-ink-soft">No destinations yet.</Panel> : (
         <Table>
-          <thead><tr><th className={th}>Destination</th><th className={th}>Area</th><th className={th}>Region</th><th className={th}>Packages</th><th className={th}>Group trips</th><th className={th}></th></tr></thead>
+          <thead><tr><th className={th}>Destination</th><th className={th}>Area</th><th className={th}>Region</th><th className={th}>Packages</th><th className={th}>Group trips</th><th className={th}></th><th className={`${th} text-right`}>Actions</th></tr></thead>
           <tbody>
             {rows.map((d) => (
               <tr key={d.id}>
@@ -28,6 +30,10 @@ export default async function AdminDestinations() {
                 <td className={`${td} tabular`}>{d._count.packages}</td>
                 <td className={`${td} tabular`}>{d._count.groupTrips}</td>
                 <td className={td}>{d.featured && <Badge tone="blue">Featured</Badge>}</td>
+                <td className={`${td} text-right`}>
+                  <RowActions id={d.id} name={d.name} editHref={`/admin/destinations/${d.id}`} viewHref={`/destinations/${d.slug}`} onDelete={deleteDestination}
+                    blockedReason={d._count.packages || d._count.groupTrips || d._count.partnerTrips ? "In use. Move its packages and trips first." : undefined} />
+                </td>
               </tr>
             ))}
           </tbody>

@@ -23,7 +23,7 @@ export function DestinationCard({ d, className, priority }: { d: Destination; cl
         className="object-cover transition-transform duration-500 ease-out-soft group-hover:scale-[1.05] motion-reduce:group-hover:scale-100"
       />
       {/* Text scrim */}
-      <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(to_top,rgb(10_16_28/0.82)_0%,rgb(10_16_28/0.25)_45%,transparent_70%)]" />
+      <div aria-hidden="true" className="absolute inset-0 bg-[linear-gradient(to_top,rgb(11_18_32/0.82)_0%,rgb(11_18_32/0.25)_45%,transparent_70%)]" />
 
       <div className="absolute left-3 top-3 flex gap-1.5">
         <Badge tone={d.region === "domestic" ? "blue" : "green"} className="bg-paper/90">{d.region === "domestic" ? "India" : "International"}</Badge>

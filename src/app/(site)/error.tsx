@@ -2,11 +2,12 @@
 
 import { useEffect } from "react";
 import { Button } from "@/components/ui";
+import { reportClientError } from "@/lib/monitoring/client";
 
 /* Catches render errors inside the site shell; navbar and footer stay up. */
 export default function SiteError({ error, reset }: { error: Error & { digest?: string }; reset: () => void }) {
   useEffect(() => {
-    console.error(error); // Sentry hooks in here in phase 6
+    reportClientError(error, { source: "error-boundary" });
   }, [error]);
 
   return (

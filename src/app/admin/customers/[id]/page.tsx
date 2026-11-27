@@ -48,7 +48,7 @@ export default async function AdminCustomer({ params }: PageProps<"/admin/custom
           </div>
           <div className="flex flex-wrap gap-1">
             {u.role === "admin" && <Badge tone="blue">Admin</Badge>}
-            {p?.verified ? <Badge tone="green">Verified</Badge> : <Badge>Not verified</Badge>}
+            {p?.verified ? <Badge tone="trust">Verified</Badge> : <Badge>Not verified</Badge>}
             {p?.discoverable ? <Badge>In Find a Partner</Badge> : <Badge tone="neutral">Hidden</Badge>}
           </div>
           {p?.bio && <p className="text-sm text-ink-soft">{p.bio}</p>}

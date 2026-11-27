@@ -4,7 +4,9 @@ import { TAGS } from "@/lib/cache-tags";
 import { db } from "@/lib/db";
 import { takenSeats } from "@/lib/checkout";
 import { sendBookingConfirmation } from "@/lib/email/booking-confirmed";
+import { ensureInvoiceNumber } from "@/lib/invoice";
 import type { Prisma } from "@/generated/prisma/client";
+import { reportError } from "@/lib/monitoring/server";
 
 export type ConfirmResult =
   | { status: "confirmed" | "already-confirmed"; reference: string }
@@ -43,7 +45,7 @@ export async function markPaid(input: {
     bookingId = b.id;
 
     if (input.amount !== undefined && input.amount !== payment.amount) {
-      console.error(`[payments] amount mismatch on ${input.orderId}: got ${input.amount}, expected ${payment.amount}`);
+      void reportError(new Error(`Amount mismatch on ${input.orderId}: got ${input.amount}, expected ${payment.amount}`), { tags: { area: "payments" } });
       return { status: "amount-mismatch" as const };
     }
     if (payment.status === "captured" && b.status === "confirmed") return { status: "already-confirmed" as const, reference: b.reference };
@@ -59,7 +61,7 @@ export async function markPaid(input: {
     // Paid for a booking that is no longer pending (cancelled meanwhile): keep the money record, flag it.
     if (b.status !== "pending" && b.status !== "confirmed") {
       await tx.payment.update({ where: { id: payment.id }, data: capture });
-      console.error(`[payments] ${b.reference} paid while ${b.status}; refund due`);
+      void reportError(new Error(`${b.reference} paid while ${b.status}; refund due`), { tags: { area: "payments", action: "refund-due" } });
       return { status: "needs-refund" as const, reference: b.reference };
     }
 
@@ -70,7 +72,7 @@ export async function markPaid(input: {
       if (taken + b.travelers > trip.seatsTotal) {
         await tx.payment.update({ where: { id: payment.id }, data: capture });
         await tx.booking.update({ where: { id: b.id }, data: { status: "cancelled", notes: "Paid after the seat hold expired and the seats were taken. Full refund due." } });
-        console.error(`[payments] ${b.reference} paid but seats are gone; refund due`);
+        void reportError(new Error(`${b.reference} paid but seats are gone; refund due`), { tags: { area: "payments", action: "refund-due" } });
         return { status: "seats-gone" as const, reference: b.reference };
       }
     }
@@ -90,7 +92,11 @@ export async function markPaid(input: {
   // Seat counts on public trip pages are cached; refresh them in the background.
   if (seatsChanged) revalidateTag(TAGS.groupTrips, "max");
   // Email after commit. Idempotent, so "already-confirmed" also retries a send that failed earlier.
-  if (bookingId && (result.status === "confirmed" || result.status === "already-confirmed")) await sendBookingConfirmation(bookingId);
+  if (bookingId && (result.status === "confirmed" || result.status === "already-confirmed")) {
+    // GST invoice number first, so the confirmation email can link to the invoice.
+    await ensureInvoiceNumber(bookingId).catch((e) => reportError(e, { tags: { area: "invoice" }, extra: { bookingId } }));
+    await sendBookingConfirmation(bookingId);
+  }
   return result;
 }
 

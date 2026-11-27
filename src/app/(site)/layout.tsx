@@ -6,12 +6,17 @@ import { CompareTray } from "@/components/packages/compare-tray";
 export default function SiteLayout({ children }: LayoutProps<"/">) {
   return (
     <>
-      <Suspense fallback={<div className="h-16 lg:h-[72px]" />}>
-        <Navbar />
-      </Suspense>
+      {/* Site chrome is hidden when printing (e.g. GST invoices) */}
+      <div className="contents print:hidden">
+        <Suspense fallback={<div className="h-16 lg:h-[72px]" />}>
+          <Navbar />
+        </Suspense>
+      </div>
       <main id="main" className="flex-1">{children}</main>
-      <Footer />
-      <CompareTray />
+      <div className="contents print:hidden">
+        <Footer />
+        <CompareTray />
+      </div>
     </>
   );
 }
